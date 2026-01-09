@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Structural Attention Distance</title>
+
+<style>
+:root{
+  --bg:#0b0f14; --card:#111826; --card2:#0f1622; --fg:#e6edf3; --muted:#9aa4b2;
+  --line:#223045; --ok:#20c997; --warn:#f59f00; --bad:#ff6b6b;
+  --top1:#b08d2b33; --top3:#1e90ff22;
+  --mono: ui-monospace, Menlo, Consolas, monospace;
+  --sans: system-ui, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 600px at 20% -10%, #1a2a44 0%, transparent 55%),
+    radial-gradient(900px 500px at 90% 0%, #2a1a44 0%, transparent 55%),
+    var(--bg);
+  color:var(--fg);
+  font-family:var(--sans);
+  line-height:1.35;
+}
+
+.wrap{max-width:1180px;margin:22px auto;padding:0 10px;}
+h1{font-size:22px;margin:0 0 6px;}
+.sub{color:var(--muted);margin-bottom:14px;}
+
+.card{
+  background:linear-gradient(180deg,var(--card),var(--card2));
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+}
+
+.card h2{font-size:14px;margin:0 0 10px;color:#cbd5e1;}
+.muted{color:var(--muted);}
+.row{display:flex;gap:10px;flex-wrap:wrap;}
+
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 10px;border-radius:999px;
+  background:#0b1220;border:1px solid #2b3d5a;font-size:12px;
+}
+.dot{width:10px;height:10px;border-radius:50%;background:#6ea8fe;}
+
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ctl{border:1px solid var(--line);background:#0a1220;border-radius:12px;padding:10px;}
+label{font-size:12px;color:#cbd5e1;font-weight:700;display:block;margin-bottom:6px;}
+.kv{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.kv2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+input,select{
+  width:100%;padding:9px;border-radius:10px;
+  border:1px solid #2a3f61;background:#081023;color:var(--fg);
+  font-family:var(--mono);
+}
+
+button{
+  border:1px solid #2a3f61;background:#162338;color:#dbe7f7;
+  padding:7px 12px;border-radius:10px;font-weight:700;cursor:pointer;
+}
+
+.status{padding:10px;border-radius:10px;border:1px solid var(--line);background:#0a1220;}
+.status.ok{color:var(--ok);}
+
+.tableWrap{
+  border:1px solid #16243a;background:#0a1220;border-radius:12px;
+  overflow-x:auto;
+}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);min-width:980px;}
+th,td{padding:8px;border-bottom:1px solid #16243a;font-size:12.5px;white-space:nowrap;}
+thead th{position:sticky;top:0;background:#081023;}
+tbody tr.top1{background:var(--top1);}
+tbody tr.top3{background:var(--top3);}
+
+.bar{height:10px;border-radius:999px;background:#0a1220;border:1px solid #1c2a43;min-width:76px;}
+.fill{height:100%;background:linear-gradient(90deg,#6ea8fe,#20c997);}
+
+.codebox{
+  background:#0a1220;border:1px solid var(--line);
+  padding:10px;border-radius:12px;
+  font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;
+}
+
+.hr{height:1px;background:#16243a;margin:12px 0;}
+
+.belowGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.chk{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-size:12px;color:#cbd5e1;
+}
+
+.chk input[type="checkbox"]{width:auto;transform:scale(1.1);}
+
+@media(max-width:980px){
+  .controls{grid-template-columns:1fr;}
+  .belowGrid{grid-template-columns:1fr;}
+  table{min-width:1080px;}
+}
+
+.k{color:var(--muted);font-size:12px;}
+.kvline{display:flex;align-items:center;gap:8px;}
+.kvline input, .kvline select{min-width:140px;}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <h1>Structural Attention Distance</h1>
+  <div class="sub">Structured Numbers • Deterministic Attention • Explainable Compatibility • Structural Distance (u,v) • No Training</div>
+
+  <div class="card">
+    <h2>What this demonstrates</h2>
+    <div class="row">
+      <span class="pill"><span class="dot"></span>No training</span>
+      <span class="pill"><span class="dot" style="background:#20c997"></span>Deterministic</span>
+      <span class="pill"><span class="dot" style="background:#f59f00"></span>Explainable</span>
+      <span class="pill"><span class="dot" style="background:#ff6b6b"></span>phi((m,a,s)) = m</span>
+    </div>
+
+    <div class="controls" style="margin-top:12px">
+      <div class="ctl">
+        <label>Preset</label>
+        <select id="preset">
+          <option value="baseline">baseline</option>
+          <option value="sharp_m">sharp_m</option>
+          <option value="health_first">health_first</option>
+          <option value="signature_first">signature_first</option>
+          <option value="strict_safety">strict_safety</option>
+        </select>
+        <button id="reset" style="margin-top:8px">Reset</button>
+      </div>
+
+      <div class="ctl">
+        <label>Query q (m,a,s)</label>
+        <div class="kv">
+          <input id="q_m" value="0.8000"/ type="number" step="0.0001">
+          <input id="q_a" value="0.6500"/ type="number" step="0.0001">
+          <input id="q_s" value="0.2000"/ type="number" step="0.0001">
+        </div>
+      </div>
+
+      <div class="ctl">
+        <label>Weights (wm, wa, ws)</label>
+        <div class="kv">
+          <input id="wm" value="1.0000"/ type="number" step="0.01">
+          <input id="wa" value="0.7500"/ type="number" step="0.01">
+          <input id="ws" value="0.3500"/ type="number" step="0.01">
+        </div>
+      </div>
+
+      <div class="ctl">
+        <label>Safety gate (a_min, p_bad)</label>
+        <div class="kv2">
+          <input id="a_min" value="0.0500"/ type="number" step="0.01">
+          <input id="p_bad" value="0.6000"/ type="number" step="0.01">
+        </div>
+      </div>
+    </div>
+
+    <div class="ctl" style="margin-top:10px">
+      <label>Optional explicit extension</label>
+      <div class="chk">
+        <input id="use_mismatch" type="checkbox"/>
+        <span>Enable signature mismatch penalty: <span style="font-family:var(--mono)">ws2*(s_q - s_j)^2</span></span>
+        <span style="margin-left:auto">
+          <span class="muted">ws2</span>
+          <input id="ws2" value="0.2500" style="width:120px"/ type="number" step="0.01">
+        </span>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="card">
+  <div class="h2">Upgrade B — Distance-regularized attention (deterministic)</div>
+  <div class="row" style="align-items:center">
+    <div class="kvline">
+      <div class="k">gamma</div>
+      <input id="gamma" type="number" step="0.01" value="0.00">
+    </div>
+
+    <div class="kvline">
+      <div class="k">D</div>
+      <select id="dist_mode">
+        <option value="uv" selected>D_uv</option>
+        <option value="muv">D_muv</option>
+      </select>
+    </div>
+
+    <div class="kvline">
+      <div class="k">Sort</div>
+      <select id="sort_mode">
+        <option value="score" selected>score</option>
+        <option value="scoreB">score_B</option>
+      </select>
+    </div>
+
+    <label class="chk" style="margin-left:6px">
+      <input id="use_upgradeB" type="checkbox">
+      Enable distance regularization: score_B = score - gamma * D
+    </label>
+  </div>
+</div>
+
+
+<div id="status" class="status ok">Computed.</div>
+
+    <h2 style="margin-top:14px">Attention Output</h2>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+  <tr>
+    <th>rank</th><th>j</th>
+    <th>m_j</th><th>a_j</th><th>s_j</th>
+    <th>score</th><th>w_j</th>
+    <th>D_uv</th><th>D_muv</th>
+    <th>score_B</th><th>w_B</th><th>D_used</th>
+    <th>m_term</th><th>a_term</th><th>s_term</th>
+    <th>penalty</th><th>mismatch</th>
+    <th>m_pct</th><th>a_pct</th><th>s_pct</th><th>pen_pct</th><th>mis_pct</th>
+    <th>w_bar</th><th>phi_ok</th>
+  </tr>
+</thead>
+        <tbody id="out"></tbody>
+      </table>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="belowGrid">
+      <div class="card">
+        <h2>Weighted collapse</h2>
+        <div class="codebox" id="collapseBox"></div>
+      </div>
+
+      <div class="card">
+        <h2>Score definition (Plain ASCII)</h2>
+        <div class="codebox" id="scoreBox"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const el = (id)=>document.getElementById(id);
+
+  const CANDS = [
+    [0.82, 0.70, 0.15],
+    [0.30, 0.90, -0.05],
+    [0.78, 0.20, 0.60],
+    [0.90, -0.10, 0.10],
+    [0.10, 0.40, -0.80],
+    [0.81, 0.55, 0.22]
+  ];
+
+  const PRESETS = {
+    baseline:{wm:1,wa:0.75,ws:0.35,a_min:0.05,p_bad:0.6,ws2:0.25},
+    sharp_m:{wm:1.35,wa:0.55,ws:0.25,a_min:0.05,p_bad:0.6,ws2:0.25},
+    health_first:{wm:0.85,wa:1.10,ws:0.25,a_min:0.05,p_bad:0.6,ws2:0.25},
+    signature_first:{wm:0.90,wa:0.55,ws:0.95,a_min:0.05,p_bad:0.6,ws2:0.25},
+    strict_safety:{wm:0.80,wa:1.20,ws:0.45,a_min:0.20,p_bad:1.10,ws2:0.25}
+  };
+
+  function clamp(x){
+    if(x > 0.999999) return 0.999999;
+    if(x < -0.999999) return -0.999999;
+    return x;
+  }
+
+  function atanhSafe(x){
+    x = clamp(+x);
+    return 0.5 * Math.log((1 + x) / (1 - x));
+  }
+
+  function softmax(scores){
+    const m = Math.max.apply(null, scores);
+    const exps = scores.map(v=>Math.exp(v - m));
+    const s = exps.reduce((a,b)=>a+b, 0);
+    return exps.map(v=>v/s);
+  }
+
+  function fmt(x, n){
+    if(!isFinite(x)) return String(x);
+    return (+x).toFixed(n);
+  }
+
+  function barHTML(pct){
+    const w = Math.max(0, Math.min(100, pct));
+    return '<div class="bar"><div class="fill" style="width:'+w.toFixed(2)+'%"></div></div>';
+  }
+
+  function compute(){
+    const qm = +el("q_m").value;
+    const qa = +el("q_a").value;
+    const qs = +el("q_s").value;
+
+    const wm = +el("wm").value;
+    const wa = +el("wa").value;
+    const ws = +el("ws").value;
+
+    const a_min = +el("a_min").value;
+    const p_bad = +el("p_bad").value;
+    const ws2 = +el("ws2").value;
+
+    const useMismatch = !!el("use_mismatch").checked;
+
+    const useB = el("use_upgradeB") ? !!el("use_upgradeB").checked : false;
+    const gamma = el("gamma") ? (+el("gamma").value) : 0.0;
+    const distMode = el("dist_mode") ? el("dist_mode").value : "uv";
+    const sortMode = el("sort_mode") ? el("sort_mode").value : "score";
+
+    const uq = atanhSafe(qa);
+    const vq = atanhSafe(qs);
+    const Rq = Math.sqrt(uq*uq + vq*vq);
+
+    const rawScores = [];
+    const rawScoresB = [];
+    const items = [];
+
+    for(let j=0;j<CANDS.length;j++){
+      const mj = CANDS[j][0];
+      const aj = CANDS[j][1];
+      const sj = CANDS[j][2];
+
+      const m_term = wm * (qm * mj);
+      const a_term = wa * (qa * aj);
+      const s_term = ws * (qs * sj);
+
+      const bad = (aj < a_min) ? 1 : 0;
+      const penalty = bad ? p_bad : 0;
+
+      const mismatch = useMismatch ? (ws2 * (qs - sj) * (qs - sj)) : 0;
+
+      const score = (m_term + a_term + s_term) - penalty - mismatch;
+
+      const uj = atanhSafe(aj);
+      const vj = atanhSafe(sj);
+      const du = uj - uq;
+      const dv = vj - vq;
+
+      const D_uv = Math.sqrt(du*du + dv*dv);
+      const dm = mj - qm;
+      const D_muv = Math.sqrt(dm*dm + du*du + dv*dv);
+
+      const D_used = (distMode === "muv") ? D_muv : D_uv;
+      const score_B = useB ? (score - gamma * D_used) : score;
+
+      const eps = 1e-12;
+      const denom = Math.abs(m_term) + Math.abs(a_term) + Math.abs(s_term) + Math.abs(penalty) + Math.abs(mismatch) + eps;
+
+      const m_pct = 100.0 * Math.abs(m_term) / denom;
+      const a_pct = 100.0 * Math.abs(a_term) / denom;
+      const s_pct = 100.0 * Math.abs(s_term) / denom;
+      const pen_pct = 100.0 * Math.abs(penalty) / denom;
+      const mis_pct = 100.0 * Math.abs(mismatch) / denom;
+
+      rawScores.push(score);
+      rawScoresB.push(score_B);
+
+      items.push({
+        j, mj, aj, sj,
+        score, score_B,
+        D_uv, D_muv, D_used,
+        m_term, a_term, s_term,
+        penalty, mismatch,
+        m_pct, a_pct, s_pct, pen_pct, mis_pct
+      });
+    }
+
+    const w = softmax(rawScores);
+    const wB = softmax(rawScoresB);
+
+    for(let i=0;i<items.length;i++){
+      items[i].w = w[i];
+      items[i].w_B = wB[i];
+    }
+
+    const key = (sortMode === "scoreB") ? "score_B" : "score";
+    items.sort((a,b)=>b[key] - a[key]);
+
+    const status = el("status");
+    const statusB = useB ? (" | Upgrade B ON: gamma=" + fmt(gamma,4) + ", D=" + (distMode==="muv"?"D_muv":"D_uv") + ", sort=" + sortMode) : " | Upgrade B OFF";
+    status.textContent =
+      "Query structural coords: u_q=" + fmt(uq,6) +
+      ", v_q=" + fmt(vq,6) +
+      ", R_q=" + fmt(Rq,6) +
+      " | D_uv = sqrt((u_j-u_q)^2+(v_j-v_q)^2), D_muv = sqrt((m_j-m_q)^2+(u_j-u_q)^2+(v_j-v_q)^2)" +
+      statusB;
+
+    const out = el("out");
+    out.innerHTML = "";
+
+    for(let r=0;r<items.length;r++){
+      const x = items[r];
+      const tr = document.createElement("tr");
+      if(r===0) tr.className = "top1";
+      if(r<3) tr.className = (tr.className ? tr.className+" " : "") + "top3";
+
+      const wShown = (sortMode === "scoreB") ? x.w_B : x.w;
+
+      const cells = [
+        String(r+1),
+        String(x.j),
+
+        fmt(x.mj,4), fmt(x.aj,4), fmt(x.sj,4),
+
+        fmt(x.score,6),
+        fmt(x.w,6),
+
+        fmt(x.D_uv,6),
+        fmt(x.D_muv,6),
+
+        fmt(x.score_B,6),
+        fmt(x.w_B,6),
+        fmt(x.D_used,6),
+
+        fmt(x.m_term,6),
+        fmt(x.a_term,6),
+        fmt(x.s_term,6),
+
+        fmt(x.penalty,6),
+        fmt(x.mismatch,6),
+
+        fmt(x.m_pct,2),
+        fmt(x.a_pct,2),
+        fmt(x.s_pct,2),
+        fmt(x.pen_pct,2),
+        fmt(x.mis_pct,2),
+
+        "",  // w_bar
+        "OK"
+      ];
+
+      for(let c=0;c<cells.length;c++){
+        const td = document.createElement("td");
+        if(c === 22){
+          td.innerHTML = barHTML(100*wShown);
+        } else {
+          td.textContent = cells[c];
+        }
+        tr.appendChild(td);
+      }
+      out.appendChild(tr);
+    }
+
+    const collapseBox = el("collapseBox");
+    if(collapseBox){
+      collapseBox.textContent = "Collapse rule preserved: phi((m,a,s)) = m.";
+    }
+
+    const scoreBox = el("scoreBox");
+    if(scoreBox){
+      const mismatchLine = "mismatch = ws2*(s_q-s_j)^2 (optional)";
+      const scoreLine = "score(q,j) = wm*(m_q*m_j) + wa*(a_q*a_j) + ws*(s_q*s_j) - p_bad*I(a_j<a_min) - mismatch";
+      const uLine = "u = atanh(a), v = atanh(s)";
+      const duvLine = "D_uv(q,j) = sqrt((u_j-u_q)^2 + (v_j-v_q)^2)";
+      const dmuvLine = "D_muv(q,j) = sqrt((m_j-m_q)^2 + (u_j-u_q)^2 + (v_j-v_q)^2)";
+      const sbLine = "score_B(q,j) = score(q,j) - gamma * D, where D is D_uv or D_muv";
+      scoreBox.textContent = [scoreLine, mismatchLine, uLine, duvLine, dmuvLine, sbLine].join("\n");
+    }
+  }
+
+  function applyPreset(name){
+    const p = PRESETS[name] || PRESETS.baseline;
+    el("wm").value = p.wm;
+    el("wa").value = p.wa;
+    el("ws").value = p.ws;
+    el("a_min").value = p.a_min;
+    el("p_bad").value = p.p_bad;
+    el("ws2").value = p.ws2;
+    compute();
+  }
+
+  el("preset").addEventListener("change", ()=>applyPreset(el("preset").value));
+  el("reset").addEventListener("click", ()=>{
+    el("preset").value = "baseline";
+    applyPreset("baseline");
+  });
+
+  [
+    "q_m","q_a","q_s",
+    "wm","wa","ws",
+    "a_min","p_bad",
+    "ws2","use_mismatch",
+    "use_upgradeB","gamma","dist_mode","sort_mode"
+  ].forEach(id=>{
+    const node = el(id);
+    if(!node) return;
+    node.addEventListener("input", compute);
+    node.addEventListener("change", compute);
+    node.addEventListener("keyup", compute);
+  });
+
+  compute();
+})();
+</script>
+<div class="wrap" style="margin-top:14px">
+  <div class="card" style="text-align:center;color:#cbd5e1;font-size:12px">
+    Observation Only. Shunyaya Structural Universal Mathematics
+  </div>
+</div>
+</body>
+</html>
