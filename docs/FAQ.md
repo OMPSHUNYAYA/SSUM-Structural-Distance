@@ -44,7 +44,8 @@ F3. Do I need to learn SSIG or SSUM first?
 G1. Is Structural Distance safe for production systems?  
 G2. Why is determinism emphasized?  
 G3. Why are heuristics and training avoided?  
-G4. What happens if alignment and stress are unavailable?
+G4. What happens if alignment and stress are unavailable?  
+G5. How should alignment and stress be interpreted in real-world geometry (e.g., LiDAR)?
 
 **SECTION H — The Bigger Picture**  
 H1. Is Structural Distance standalone or part of a larger framework?  
@@ -401,6 +402,65 @@ Resulting in:
 `eta = 1`
 
 This is the correct deterministic fallback, not a failure.
+
+---
+
+### G5. How should alignment and stress be interpreted in real-world geometry (e.g., LiDAR)?
+
+Alignment (`a`) and structural spread (`s`) are **derived structural observables**, not physical forces or material properties.
+
+When Structural Distance is applied to real-world geometry (such as LiDAR-derived structures):
+
+- **Alignment (`a`)** represents **local structural consistency or coherence** inferred from geometric configuration
+- **Structural spread (`s`)** represents **structural dispersion, stiffness variation, or vulnerability exposure** inferred from geometry
+
+These quantities are:
+
+- derived **deterministically** from geometry and traversal order
+- **observation-only**
+- invariant under the collapse rule `phi((m,a,s)) = m`
+
+They do **not** directly represent:
+
+- stress or strain
+- load, pressure, or force
+- safety factors or engineering margins
+
+Instead, they describe **structural permission and resistance** in an abstract, domain-agnostic way.
+
+---
+
+#### Relationship to classical structural engineering
+
+Structural Distance **does not replace** classical structural or geotechnical engineering models.
+
+- Classical engineering answers: **“Will it fail under known physical loads?”**
+- Structural Distance answers: **“How much structural cost accumulates along a traversal or configuration?”**
+
+The two are **complementary**:
+
+- classical models are **prescriptive and causal**
+- Structural Distance is **diagnostic and interpretive**
+
+No safety-critical conclusions should be drawn from Structural Distance alone.
+
+---
+
+#### Can Structural Distance predict failure under changing conditions (e.g., soil erosion)?
+
+No.
+
+Structural Distance **does not predict failure directly**.
+
+What it can do is:
+
+- detect **rising structural cost**
+- reveal **early exhaustion of structural capacity**
+- expose **instability before numerical or geometric failure appears**
+
+Prediction, simulation, or intervention must occur **outside** Structural Distance using domain-specific physical models.
+
+Structural Distance provides **early structural signals**, not forecasts or control actions.
 
 ---
 
