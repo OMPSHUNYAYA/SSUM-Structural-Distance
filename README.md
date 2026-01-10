@@ -291,6 +291,20 @@ It does not change mathematics.
 
 ---
 
+## 🔍 Interpretation Boundaries (Brief)
+
+**Structural Distance (SSUM-SD) is an observational framework, not a physical simulation or engineering solver.**
+
+- `a` (alignment) and `s` (structural spread) are **derived structural observables**, not forces, loads, or material properties.
+- Terms like **allowance** and **suppression** describe **structural permission and resistance**, not physical causation.
+- The collapse rule `phi((m,a,s)) = m` guarantees that **classical geometry and physics remain unchanged**.
+- Structural Distance **does not predict failure or replace engineering models**.
+- It provides **early structural signals** (rising cost, exhaustion, instability) that may be interpreted *alongside* domain-specific analysis.
+
+For detailed domain mapping and LiDAR interpretation, see **FAQ**.
+
+---
+
 ## 📄 License & Attribution
 
 **CC BY 4.0 — Public Research Release**
